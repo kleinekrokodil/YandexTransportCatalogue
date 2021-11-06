@@ -1,7 +1,6 @@
 #include "transport_catalogue.h"
 #include <functional>
 #include <cstdint>
-#include <set>
 
 void RemoveBeginEndSpaces(std::string_view& str){
     while(str.front() == ' '){
@@ -57,6 +56,7 @@ void TransportCatalogue::AddStop(std::string_view stop_sv){
     std::string_view lng_ = FindName(stop_sv, ',');
     stop.longitude = std::stod({lng_.data(), lng_.size()});
     stops_.insert({stop.stop_name, stop});
+    buses_for_stops_.insert({stop.stop_name, {}});
 }
 
 void TransportCatalogue::AddBus(std::string_view bus_sv){
@@ -64,7 +64,7 @@ void TransportCatalogue::AddBus(std::string_view bus_sv){
     bus_sv.remove_prefix(3);
     bus.bus_name = FindName(bus_sv, ':');
     char sep = '-';
-    if(bus_sv.find('>') != bus_sv.npos){
+    if(bus_sv.find('>') != std::string_view::npos){
         bus.is_circle = true;
         sep = '>';
     }
@@ -73,6 +73,7 @@ void TransportCatalogue::AddBus(std::string_view bus_sv){
         if(stops_.count(stop_name)){
             Stop* stop_ptr = &stops_.at(stop_name);
             bus.route.push_back(stop_ptr);
+            buses_for_stops_[stop_ptr->stop_name].insert(bus.bus_name);
         }
     }
     for(size_t i = 1; i < bus.route.size(); ++i){
@@ -115,4 +116,17 @@ BusRoute TransportCatalogue::RouteInformation(std::string_view bus){
     return route;
 }
 
+StopRoutes TransportCatalogue::StopInformation(std::string_view stop){
+    RemoveBeginEndSpaces(stop);
+    StopRoutes buses_for_stop;
+    if(buses_for_stops_.count(stop)){
+        buses_for_stop.is_found = true;
+        buses_for_stop.stop_name = stop;
+        buses_for_stop.routes = buses_for_stops_.at(stop);
+    }
+    else{
+        buses_for_stop.stop_name = stop;
+    }
+    return buses_for_stop;
+}
 
