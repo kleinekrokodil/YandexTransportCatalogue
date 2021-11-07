@@ -1,6 +1,5 @@
 #include "transport_catalogue.h"
 #include <functional>
-#include <cstdint>
 
 void RemoveBeginEndSpaces(std::string_view& str){
     while(str.front() == ' '){
@@ -38,15 +37,20 @@ TransportCatalogue::TransportCatalogue(std::deque<std::string> q)
         if(i.substr(0, 4) == "Stop"){
             AddStop(i);
         }
-        else if(i.substr(0, 3) == "Bus"){
+        if(i.substr(0, 3) == "Bus"){
             AddBus(i);
         }
+    }
+    for(auto& i : stops_){
+        AddNextStops(i.second);
+    }
+    for(auto& i : buses_){
+        ComputeRealRouteLength(i.second);
     }
 }
 
 void TransportCatalogue::AddStop(std::string_view stop_sv){
     Stop stop;
-    //std::string_view stop_sv = sv;
     //Находим имя остановки
     stop_sv.remove_prefix(4); //Убираем слово Stop
     stop.stop_name = FindName(stop_sv, ':');
@@ -55,8 +59,21 @@ void TransportCatalogue::AddStop(std::string_view stop_sv){
     stop.latitude = std::stod({lat_.data(), lat_.size()});
     std::string_view lng_ = FindName(stop_sv, ',');
     stop.longitude = std::stod({lng_.data(), lng_.size()});
+    stop.next_stops = stop_sv; //string_view с оставшейся информацией для последующей обработки
     stops_.insert({stop.stop_name, stop});
     buses_for_stops_.insert({stop.stop_name, {}});
+}
+
+void TransportCatalogue::AddNextStops(Stop& stop){
+    while(!stop.next_stops.empty()){
+        std::string_view distance = FindName(stop.next_stops, 'm');
+        stop.next_stops.remove_prefix(stop.next_stops.find("to"));
+        stop.next_stops.remove_prefix(2);
+        std::string_view next_name = FindName(stop.next_stops, ',');
+        if(stops_.count(next_name)){
+            stop.dist_to_next.insert({stops_.at(next_name).stop_name, std::stoi({distance.data(), distance.size()})});
+        }
+    }
 }
 
 void TransportCatalogue::AddBus(std::string_view bus_sv){
@@ -91,11 +108,33 @@ void TransportCatalogue::AddBus(std::string_view bus_sv){
     buses_.insert({bus.bus_name, bus});
 }
 
-Stop TransportCatalogue::FindStop(std::string& stop){
+void TransportCatalogue::ComputeRealRouteLength(Bus& bus){
+    for(size_t i = 1; i < bus.route.size(); ++i){
+        if(bus.route[i - 1]->dist_to_next.count(bus.route[i]->stop_name)){
+            bus.true_length += bus.route[i - 1]->dist_to_next.at(bus.route[i]->stop_name);
+        }
+        else if(bus.route[i]->dist_to_next.count(bus.route[i - 1]->stop_name)){
+            bus.true_length += bus.route[i]->dist_to_next.at(bus.route[i - 1]->stop_name);
+        }
+    }
+    if(!bus.is_circle){
+        for(size_t i = 1; i < bus.route.size(); ++i){
+            if(bus.route[i]->dist_to_next.count(bus.route[i - 1]->stop_name)) {
+                bus.true_length += bus.route[i]->dist_to_next.at(bus.route[i - 1]->stop_name);
+            }
+            else if(bus.route[i - 1]->dist_to_next.count(bus.route[i]->stop_name)) {
+                bus.true_length += bus.route[i - 1]->dist_to_next.at(bus.route[i]->stop_name);
+            }
+        }
+    }
+    bus.curvature = bus.true_length / bus.r_length;
+}
+
+Stop TransportCatalogue::FindStop(std::string_view stop){
     return stops_.at(stop);
 }
 
-Bus TransportCatalogue::FindBus(std::string& bus){
+Bus TransportCatalogue::FindBus(std::string_view bus){
     return buses_.at(bus);
 }
 
@@ -108,7 +147,8 @@ BusRoute TransportCatalogue::RouteInformation(std::string_view bus){
         route.bus_name = buses_.at(bus).bus_name;
         route.stops = (buses_.at(bus).is_circle) ? (buses_.at(bus).route.size()) : (buses_.at(bus).route.size() * 2 - 1);
         route.unique_stops = unique_stops.size();
-        route.r_length = buses_.at(bus).r_length;
+        route.true_length = buses_.at(bus).true_length;
+        route.curvature = buses_.at(bus).curvature;
     }
     else{
         route.bus_name = bus;

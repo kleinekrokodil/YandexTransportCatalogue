@@ -7,11 +7,14 @@
 #include <vector>
 #include <functional>
 #include <set>
+#include <cstdint>
 
 struct Stop{
     std::string_view stop_name;
     double latitude = 0.0;
     double longitude = 0.0;
+    std::string_view next_stops;
+    std::unordered_map<std::string_view, std::uint32_t> dist_to_next;
 };
 
 struct Bus{
@@ -19,13 +22,16 @@ struct Bus{
     std::vector<const Stop*> route;
     bool is_circle = false;
     double r_length = 0.0;
+    uint32_t true_length = 0;
+    double curvature = 0.0;
 };
 
 struct BusRoute{
     std::string_view bus_name;
     size_t stops = 0;
     size_t unique_stops = 0;
-    double r_length = 0.0;
+    uint32_t true_length = 0;
+    double curvature = 0.0;
     bool is_found = false;
 };
 
@@ -34,7 +40,6 @@ struct StopRoutes{
     std::set<std::string_view> routes;
     bool is_found = false;
 };
-
 
 void RemoveBeginEndSpaces(std::string_view& str);
 
@@ -47,17 +52,19 @@ public:
 
     void AddStop(std::string_view stop_sv);
 
+    void AddNextStops(Stop& stop);
+
     void AddBus(std::string_view bus_sv);
 
-    Stop FindStop(std::string& stop);
+    void ComputeRealRouteLength(Bus& bus);
 
-    Bus FindBus(std::string& bus);
+    Stop FindStop(std::string_view stop);
+
+    Bus FindBus(std::string_view bus);
 
     BusRoute RouteInformation(std::string_view bus);
 
     StopRoutes StopInformation(std::string_view stop);
-
-
 
 private:
     std::deque<std::string> queries_;

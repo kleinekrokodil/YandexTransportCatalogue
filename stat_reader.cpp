@@ -32,7 +32,7 @@ void PrintBusInfo(BusRoute r){
     }
     else{
         std::cout << "Bus "s << r.bus_name << ": " << r.stops << " stops on route, "s << r.unique_stops <<
-                  " unique stops, "s << r.r_length << " route length"s << std::endl;
+                  " unique stops, "s << r.true_length << " route length, "s << r.curvature << " curvature"s <<std::endl;
     }
 }
 
