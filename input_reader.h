@@ -2,4 +2,6 @@
 #include <string>
 #include <deque>
 
-std::deque<std::string> InputReader();
+namespace transport_catalogue::input_reader {
+    std::deque<std::string> InputReader();
+}
