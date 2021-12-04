@@ -4,7 +4,8 @@
 #include "stat_reader.h"
 
 int main(){
-    TransportCatalogue t(InputReader());
-    StatReader(t);
+    using namespace transport_catalogue;
+    TransportCatalogue t(input_reader::InputReader());
+    stat_reader::StatReader(t);
     return 0;
 }

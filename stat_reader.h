@@ -2,8 +2,10 @@
 
 #include "transport_catalogue.h"
 
-void StatReader(TransportCatalogue t);
+namespace transport_catalogue::stat_reader {
+    void StatReader(TransportCatalogue t);
 
-void PrintBusInfo(BusRoute r);
+    void PrintBusInfo(BusRoute r);
 
-void PrintStopInfo(const StopRoutes& s);
+    void PrintStopInfo(const StopRoutes &s);
+}
