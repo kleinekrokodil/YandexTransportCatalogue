@@ -8,72 +8,33 @@
 #include <functional>
 #include <set>
 #include <cstdint>
+#include "domain.h"
 
 namespace transport_catalogue {
-    struct Stop {
-        std::string_view stop_name;
-        double latitude = 0.0;
-        double longitude = 0.0;
-        std::string_view next_stops;
-        std::unordered_map<std::string_view, std::uint32_t> dist_to_next;
-    };
-
-    struct Bus {
-        std::string_view bus_name;
-        std::vector<const Stop *> route;
-        bool is_circle = false;
-        double r_length = 0.0;
-        uint32_t true_length = 0;
-        double curvature = 0.0;
-    };
-
-    struct BusRoute {
-        std::string_view bus_name;
-        size_t stops = 0;
-        size_t unique_stops = 0;
-        uint32_t true_length = 0;
-        double curvature = 0.0;
-        bool is_found = false;
-    };
-
-    struct StopRoutes {
-        std::string_view stop_name;
-        std::set<std::string_view> routes;
-        bool is_found = false;
-    };
 
     namespace detail {
-        void RemoveBeginEndSpaces(std::string_view &str);
-
         std::string_view FindName(std::string_view &sv, char separator);
     }
 
     class TransportCatalogue {
     public:
         TransportCatalogue() = default;
-
-        explicit TransportCatalogue(std::deque<std::string> q);
-
-        void AddStop(std::string_view stop_sv);
-
-        void AddNextStops(Stop &stop);
-
-        void AddBus(std::string_view bus_sv);
-
-        void ComputeRealRouteLength(Bus &bus);
-
+        explicit TransportCatalogue(std::deque<std::string> queries);
         Stop FindStop(std::string_view stop);
-
         Bus FindBus(std::string_view bus);
-
-        BusRoute RouteInformation(std::string_view bus);
-
-        StopRoutes StopInformation(std::string_view stop);
+        BusRoute RouteInformation(std::string_view bus) const;
+        StopRoutes StopInformation(std::string_view stop) const;
 
     private:
         std::deque<std::string> queries_;
         std::unordered_map<std::string_view, Stop> stops_;
         std::unordered_map<std::string_view, Bus> buses_;
         std::unordered_map<std::string_view, std::set<std::string_view>> buses_for_stops_;
+
+        void AddStop(std::string_view stop_sv);
+        void AddNextStops(Stop &stop);
+        void AddBus(std::string_view bus_sv);
+        void ComputeRealRouteLength(Bus &bus);
+
     };
-}
+}//namespace transport_catalogue

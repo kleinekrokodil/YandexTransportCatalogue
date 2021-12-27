@@ -2,7 +2,7 @@
 #include <functional>
 
 namespace transport_catalogue {
-    namespace detail {
+    namespace {
         void RemoveBeginEndSpaces(std::string_view &str) {
             while (str.front() == ' ') {
                 str.remove_prefix(1);
@@ -11,7 +11,8 @@ namespace transport_catalogue {
                 str.remove_suffix(1);
             }
         }
-
+    }//namespace
+    namespace detail {
         std::string_view FindName(std::string_view &sv, char separator) {
             std::string_view name;
             std::uint64_t sep_pos;
@@ -29,12 +30,12 @@ namespace transport_catalogue {
             }
             return name;
         }
-    }
+    }//namespace detail
 
     using detail::FindName;
 
-    TransportCatalogue::TransportCatalogue(std::deque<std::string> q)
-            : queries_(std::move(q)) {
+    TransportCatalogue::TransportCatalogue(std::deque<std::string> queries)
+            : queries_(std::move(queries)) {
         using namespace std::string_literals;
         for (const auto &i: queries_) {
             if (i.substr(0, 4) == "Stop"s) {
@@ -102,7 +103,7 @@ namespace transport_catalogue {
             if (bus.route[i - 1] == bus.route[i]) {
                 continue;
             } else {
-                bus.r_length += ComputeDistance({bus.route[i - 1]->latitude, bus.route[i - 1]->longitude},
+                bus.r_length += geo::ComputeDistance({bus.route[i - 1]->latitude, bus.route[i - 1]->longitude},
                                                 {bus.route[i]->latitude, bus.route[i]->longitude});
             }
         }
@@ -129,7 +130,12 @@ namespace transport_catalogue {
                 }
             }
         }
-        bus.curvature = bus.true_length / bus.r_length;
+        if(bus.r_length > std::numeric_limits<double>::epsilon()) {
+            bus.curvature = bus.true_length / bus.r_length;
+        }
+        else{
+            bus.curvature = 1;
+        }
     }
 
     Stop TransportCatalogue::FindStop(std::string_view stop) {
@@ -140,35 +146,33 @@ namespace transport_catalogue {
         return buses_.at(bus);
     }
 
-    BusRoute TransportCatalogue::RouteInformation(std::string_view bus) {
-        using detail::RemoveBeginEndSpaces;
+    BusRoute TransportCatalogue::RouteInformation(std::string_view bus) const {
         RemoveBeginEndSpaces(bus);
         BusRoute route;
         if (buses_.count(bus)) {
             route.is_found = true;
             std::set<const Stop *> unique_stops(buses_.at(bus).route.begin(), buses_.at(bus).route.end());
-            route.bus_name = buses_.at(bus).bus_name;
+            route.bus_name = {buses_.at(bus).bus_name.data(), buses_.at(bus).bus_name.size()};
             route.stops = (buses_.at(bus).is_circle) ? (buses_.at(bus).route.size()) : (
                     buses_.at(bus).route.size() * 2 - 1);
             route.unique_stops = unique_stops.size();
             route.true_length = buses_.at(bus).true_length;
             route.curvature = buses_.at(bus).curvature;
         } else {
-            route.bus_name = bus;
+            route.bus_name = {bus.data(), bus.size()};
         }
         return route;
     }
 
-    StopRoutes TransportCatalogue::StopInformation(std::string_view stop) {
-        using detail::RemoveBeginEndSpaces;
+    StopRoutes TransportCatalogue::StopInformation(std::string_view stop) const{
         RemoveBeginEndSpaces(stop);
         StopRoutes buses_for_stop;
         if (buses_for_stops_.count(stop)) {
             buses_for_stop.is_found = true;
-            buses_for_stop.stop_name = stop;
+            buses_for_stop.stop_name = {stops_.at(stop).stop_name.data(), stops_.at(stop).stop_name.size()};
             buses_for_stop.routes = buses_for_stops_.at(stop);
         } else {
-            buses_for_stop.stop_name = stop;
+            buses_for_stop.stop_name = {stop.data(), stop.size()};
         }
         return buses_for_stop;
     }
