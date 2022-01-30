@@ -24,6 +24,7 @@ namespace transport_catalogue {
         Bus FindBus(std::string_view bus);
         BusRoute RouteInformation(std::string_view bus) const;
         StopRoutes StopInformation(std::string_view stop) const;
+        const std::unordered_map<std::string_view, Bus> & GetBuses() const;
 
     private:
         std::deque<std::string> queries_;
@@ -35,6 +36,5 @@ namespace transport_catalogue {
         void AddNextStops(Stop &stop);
         void AddBus(std::string_view bus_sv);
         void ComputeRealRouteLength(Bus &bus);
-
     };
 }//namespace transport_catalogue
