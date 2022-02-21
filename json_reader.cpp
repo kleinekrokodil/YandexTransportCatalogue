@@ -1,4 +1,5 @@
 #include "json_reader.h"
+#include "json_builder.h"
 #include <sstream>
 
 namespace json_reader {
@@ -157,81 +158,43 @@ namespace json_reader {
     }
 
     json::Document JsonReader::MakeJSON(const std::vector<std::pair<int, std::variant<BusRoute, StopRoutes, svg::Document>>>& answers) {
-        std::stringstream str;
-        str << "[";
-        bool is_first = true;
+        using namespace std::string_literals;
+        json::Builder builder;
+        builder.StartArray();
         for (const auto &answer: answers) {
-            if (!is_first) {
-                str << ", ";
-            }
-            str << "{\"request_id\": ";
-            str << answer.first;
-            str << ", ";
+            builder.StartDict().Key("request_id"s).Value(answer.first);
             if (std::holds_alternative<BusRoute>(answer.second)) {
                 const auto &bus = std::get<BusRoute>(answer.second);
                 if (bus.is_found) {
-                    str << "\"curvature\": ";
-                    str << bus.curvature;
-                    str << ", ";
-                    str << "\"route_length\": ";
-                    str << bus.true_length;
-                    str << ", ";
-                    str << "\"stop_count\": ";
-                    str << bus.stops;
-                    str << ", ";
-                    str << "\"unique_stop_count\": ";
-                    str << bus.unique_stops;
-                    str << "} ";
+                    builder.Key("curvature"s).Value(bus.curvature)
+                            .Key("route_length"s).Value(bus.true_length)
+                            .Key("stop_count"s).Value(static_cast<int>(bus.stops))
+                            .Key("unique_stop_count"s).Value(static_cast<int>(bus.unique_stops)).EndDict();
                 } else {
-                    str << R"("error_message": "not found"})";
+                    builder.Key("error_message"s).Value("not found"s).EndDict();
                 }
             }
             if (std::holds_alternative<StopRoutes>(answer.second)) {
                 const auto &stop = std::get<StopRoutes>(answer.second);
                 if (stop.is_found) {
-                    str << "\"buses\": [";
-                    bool is_first = true;
+                    builder.Key("buses"s).StartArray();
                     for (const auto &bus: stop.routes) {
-                        if (!is_first) {
-                            str << ", ";
-                        }
-                        str << "\"";
-                        str << bus;
-                        str << "\"";
-                        is_first = false;
+                        std::string bus_str = {bus.data(), bus.size()};
+                        builder.Value(bus_str);
                     }
-                    str << "] ";
+                    builder.EndArray().EndDict();
                 } else {
-                    str << R"("error_message": "not found")";
+                    builder.Key("error_message"s).Value("not found"s).EndDict();
                 }
-                str << "}";
             }
             if (std::holds_alternative<svg::Document>(answer.second)) {
                 const auto &svg_doc = std::get<svg::Document>(answer.second);
                 std::stringstream svg_str;
                 svg_doc.Render(svg_str);
-                str << R"("map": ")";
-                char ch;
-                while (svg_str.get(ch)) {
-                    if (ch == '\n') {
-                        str << "\\n";
-                    } else if (ch == '\r') {
-                        str << "\\r";
-                    } else if (ch == '\t') {
-                        str << "\\t";
-                    } else if (ch == '\\') {
-                        str << "\\\\";
-                    } else if (ch == '"') {
-                        str << "\\\"";
-                    } else {
-                        str << ch;
-                    }
-                }
-                str << "\"}";
+                builder.Key("map"s).Value(svg_str.str()).EndDict();
             }
-            is_first = false;
         }
-        str << "]";
-        return json::Load(str);
+                builder.EndArray();
+        return json::Document(builder.Build());
     }
 }//namespace json_reader
