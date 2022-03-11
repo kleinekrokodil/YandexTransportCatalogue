@@ -12,4 +12,5 @@ add_executable(YandexTransportCatalogue
         json_reader.h json_reader.cpp
         request_handler.h request_handler.cpp
         svg.h svg.cpp
-        map_renderer.h map_renderer.cpp)
+        map_renderer.h map_renderer.cpp
+        json_builder.h json_builder.cpp)
