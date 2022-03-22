@@ -10,7 +10,7 @@ namespace request_handler {
         using TransportCatalogue = transport_catalogue::TransportCatalogue;
 
         RequestHandler(const TransportCatalogue &db, const std::vector<std::pair<int, std::string>>& requests);
-        RequestHandler(const TransportCatalogue &db, const std::vector<std::pair<int, std::string>>& requests, RendererSettings renderer_settings);
+        RequestHandler(const TransportCatalogue &db, const std::vector<std::pair<int, std::string>>& requests, RendererSettings renderer_settings, const TransportRouter& router);
 
         // Возвращает информацию о маршруте (запрос Bus)
         BusRoute GetBusStat(const std::string_view &bus_name) const;
@@ -19,7 +19,7 @@ namespace request_handler {
         StopRoutes GetBusesByStop(const std::string_view &stop_name) const;
 
         //Возвращает словарь ответов
-        const std::vector<std::pair<int, std::variant<BusRoute, StopRoutes, svg::Document>>>& GetAnswers() const;
+        const std::vector<std::pair<int, std::variant<BusRoute, StopRoutes, svg::Document, BusTripRoute>>>& GetAnswers() const;
 
         //Возвращает список непустых маршрутов
         std::map<std::string_view, std::shared_ptr<Bus>> GetActiveBuses();
@@ -30,7 +30,8 @@ namespace request_handler {
     private:
         const TransportCatalogue &db_;
         const std::vector<std::pair<int, std::string>>& requests_;
-        std::vector<std::pair<int, std::variant<BusRoute, StopRoutes, svg::Document>>> answers_;
+        std::vector<std::pair<int, std::variant<BusRoute, StopRoutes, svg::Document, BusTripRoute>>> answers_;
         RendererSettings renderer_settings_;
+        TransportRouter router_;
     };
 }//namespace request_handler
