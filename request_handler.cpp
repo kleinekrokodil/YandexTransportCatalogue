@@ -5,7 +5,7 @@
 namespace request_handler {
 using namespace std::string_literals;
     // MapRenderer понадобится в следующей части итогового проекта
-    RequestHandler::RequestHandler(const TransportCatalogue &db, const std::vector<std::pair<int, std::string>>& requests)
+    /*RequestHandler::RequestHandler(const TransportCatalogue &db, const std::vector<std::pair<int, std::string>>& requests)
     : db_(db)
     , requests_(requests){
         for(auto& [id, request] : requests_){
@@ -17,14 +17,15 @@ using namespace std::string_literals;
                 answers_.emplace_back(id, GetBusesByStop(request.substr(space)));
             }
         }
-    }
+    }*/
 
     RequestHandler::RequestHandler(const RequestHandler::TransportCatalogue &db,
                                    const std::vector<std::pair<int, std::string>> &requests,
-                                   RendererSettings renderer_settings)
+                                   RendererSettings renderer_settings, const TransportRouter& router)
     : db_(db)
     , requests_(requests)
-    , renderer_settings_(std::move(renderer_settings)){
+    , renderer_settings_(std::move(renderer_settings))
+    , router_(router){
         for(auto& [id, request] : requests_){
             auto space = request.find_first_of(' ');
             if(request.substr(0, space) == "Bus"s){
@@ -36,6 +37,12 @@ using namespace std::string_literals;
             else if(request.substr(0, space) == "Map"s){
                 MapRenderer map_renderer(renderer_settings_, GetActiveBuses());
                 answers_.emplace_back(id, map_renderer.RenderMap());
+            }
+            else if(request.substr(0, space) == "Route"s){
+                auto separator = request.find(" -> ", ++space);
+                std::string first_stop = request.substr(space, (separator - space));
+                std::string last_stop = request.substr(separator + 4);
+                answers_.emplace_back(id, router_.GetRoute(first_stop, last_stop));
             }
         }
     }
@@ -49,7 +56,7 @@ using namespace std::string_literals;
         return db_.StopInformation(stop_name);
     }
     //Возвращает словарь ответов
-    const std::vector<std::pair<int, std::variant<BusRoute, StopRoutes, svg::Document>>>& RequestHandler::GetAnswers() const{
+    const std::vector<std::pair<int, std::variant<BusRoute, StopRoutes, svg::Document, BusTripRoute>>>& RequestHandler::GetAnswers() const{
         return answers_;
     }
     //Возвращает список непустых маршрутов

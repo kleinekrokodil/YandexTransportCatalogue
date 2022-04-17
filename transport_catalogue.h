@@ -9,6 +9,7 @@
 #include <set>
 #include <cstdint>
 #include "domain.h"
+#include <optional>
 
 namespace transport_catalogue {
 
@@ -25,6 +26,8 @@ namespace transport_catalogue {
         BusRoute RouteInformation(std::string_view bus) const;
         StopRoutes StopInformation(std::string_view stop) const;
         const std::unordered_map<std::string_view, Bus> & GetBuses() const;
+        std::optional<uint32_t> GetDistanceBetweenStops(const Stop& lhs, const Stop& rhs) const;
+        const std::unordered_map<std::string_view, Stop>& GetStops() const;
 
     private:
         std::deque<std::string> queries_;

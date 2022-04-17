@@ -189,4 +189,17 @@ namespace transport_catalogue {
         return buses_;
     }
 
+    std::optional<uint32_t> TransportCatalogue::GetDistanceBetweenStops(const Stop &lhs, const Stop &rhs) const {
+        if(lhs.dist_to_next.count(rhs.stop_name)){
+            return lhs.dist_to_next.at(rhs.stop_name);
+        }
+        else if(rhs.dist_to_next.count(lhs.stop_name)){
+            return rhs.dist_to_next.at(lhs.stop_name);
+        }
+        return std::nullopt;
+    }
+
+    const std::unordered_map<std::string_view, Stop> &TransportCatalogue::GetStops() const {
+        return stops_;
+    }
 }

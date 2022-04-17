@@ -9,12 +9,14 @@ namespace json_reader {
             throw std::invalid_argument("Incorrect JSON");
         }
         const auto& query_map = document.GetRoot().AsMap();
-        if(!query_map.count("base_requests") || !query_map.count("stat_requests") || !query_map.count("render_settings")){
+        if(!query_map.count("base_requests") || !query_map.count("stat_requests")
+            || !query_map.count("render_settings") || !query_map.count("routing_settings")){
             throw std::invalid_argument("Incorrect JSON");
         }
         JsonBaseReader(query_map.at("base_requests").AsArray());
         JsonStatReader(query_map.at("stat_requests").AsArray());
         JsonRenderSettingsReader(query_map.at("render_settings").AsMap());
+        JsonRouterSettingsReader(query_map.at("routing_settings").AsMap());
     }
 
     const std::deque<std::string>& JsonReader::BaseRequestsReturn(){
@@ -52,6 +54,12 @@ namespace json_reader {
             if(query.AsMap().count("name")) {
                 request += ' ';
                 request += query.AsMap().at("name").AsString();
+            }
+            if(query.AsMap().count("from") && query.AsMap().count("to")){
+                request += ' ';
+                request += query.AsMap().at("from").AsString();
+                request += " -> ";
+                request += query.AsMap().at("to").AsString();
             }
             stat_request_.push_back({query.AsMap().at("id").AsInt(), request});
             }
@@ -157,7 +165,7 @@ namespace json_reader {
         return result;
     }
 
-    json::Document JsonReader::MakeJSON(const std::vector<std::pair<int, std::variant<BusRoute, StopRoutes, svg::Document>>>& answers) {
+    json::Document JsonReader::MakeJSON(const std::vector<std::pair<int, std::variant<BusRoute, StopRoutes, svg::Document, BusTripRoute>>>& answers) {
         using namespace std::string_literals;
         json::Builder builder;
         builder.StartArray();
@@ -193,8 +201,42 @@ namespace json_reader {
                 svg_doc.Render(svg_str);
                 builder.Key("map"s).Value(svg_str.str()).EndDict();
             }
+            if (std::holds_alternative<BusTripRoute>(answer.second)){
+                const auto &bus_trip_route = std::get<BusTripRoute>(answer.second);
+                if(bus_trip_route.is_found) {
+                    builder.Key("total_time"s).Value(bus_trip_route.total_time_).Key("items"s).StartArray();
+                    if(!bus_trip_route.stages_.empty()) {
+                        for (const auto &stage: bus_trip_route.stages_) {
+                            builder.StartDict().Key("type"s).Value("Wait"s).Key("stop_name"s).Value(
+                                            std::string(stage.stops_.first))
+                                    .Key("time"s).Value(router_settings_.bus_wait_time_).EndDict();
+                            builder.StartDict().Key("type"s).Value("Bus"s).Key("bus"s).Value(
+                                            std::string(stage.bus_name_))
+                                    .Key("span_count"s).Value(static_cast<int>(stage.span_count_))
+                                    .Key("time"s).Value(stage.time_ - router_settings_.bus_wait_time_).EndDict();
+                        }
+                        builder.EndArray();
+                    }
+                    else{
+                        builder.EndArray();
+                    }
+                    builder.EndDict();
+                }
+                else{
+                    builder.Key("error_message"s).Value("not found"s).EndDict();
+                }
+            }
         }
                 builder.EndArray();
         return json::Document(builder.Build());
+    }
+
+    const RouterSettings &JsonReader::RouterSettingsReturn() {
+        return router_settings_;
+    }
+
+    void JsonReader::JsonRouterSettingsReader(const json::Dict &settings) {
+        router_settings_.bus_wait_time_ = settings.at("bus_wait_time").AsInt();
+        router_settings_.bus_velocity_ = settings.at("bus_velocity").AsDouble();
     }
 }//namespace json_reader
