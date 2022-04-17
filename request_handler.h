@@ -32,6 +32,6 @@ namespace request_handler {
         const std::vector<std::pair<int, std::string>>& requests_;
         std::vector<std::pair<int, std::variant<BusRoute, StopRoutes, svg::Document, BusTripRoute>>> answers_;
         RendererSettings renderer_settings_;
-        TransportRouter router_;
+        std::optional<TransportRouter> router_;
     };
 }//namespace request_handler

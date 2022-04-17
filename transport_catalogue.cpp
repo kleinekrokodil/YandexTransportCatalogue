@@ -1,6 +1,7 @@
 #include "transport_catalogue.h"
 #include <functional>
 #include <cstdlib>
+#include <limits>
 
 namespace transport_catalogue {
     namespace {
@@ -202,4 +203,9 @@ namespace transport_catalogue {
     const std::unordered_map<std::string_view, Stop> &TransportCatalogue::GetStops() const {
         return stops_;
     }
+
+    const std::deque<std::string> &TransportCatalogue::GetBase() const {
+        return queries_;
+    }
+
 }

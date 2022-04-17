@@ -9,14 +9,26 @@ namespace json_reader {
             throw std::invalid_argument("Incorrect JSON");
         }
         const auto& query_map = document.GetRoot().AsMap();
-        if(!query_map.count("base_requests") || !query_map.count("stat_requests")
-            || !query_map.count("render_settings") || !query_map.count("routing_settings")){
+        /*if((!query_map.count("base_requests") && !query_map.count("render_settings")
+        && !query_map.count("routing_settings") && !query_map.count("serialization_settings"))
+            || (!query_map.count("stat_requests") && !query_map.count("serialization_settings"))){
             throw std::invalid_argument("Incorrect JSON");
+        }*/
+        if(query_map.count("base_requests")){
+            JsonBaseReader(query_map.at("base_requests").AsArray());
         }
-        JsonBaseReader(query_map.at("base_requests").AsArray());
-        JsonStatReader(query_map.at("stat_requests").AsArray());
-        JsonRenderSettingsReader(query_map.at("render_settings").AsMap());
-        JsonRouterSettingsReader(query_map.at("routing_settings").AsMap());
+        if(query_map.count("render_settings")){
+            JsonRenderSettingsReader(query_map.at("render_settings").AsMap());
+        }
+        if(query_map.count("routing_settings")){
+            JsonRouterSettingsReader(query_map.at("routing_settings").AsMap());
+        }
+        if(query_map.count("serialization_settings")) {
+            JsonSerializationSettingsReader(query_map.at("serialization_settings").AsMap());
+        }
+        if(query_map.count("stat_requests")) {
+            JsonStatReader(query_map.at("stat_requests").AsArray());
+        }
     }
 
     const std::deque<std::string>& JsonReader::BaseRequestsReturn(){
@@ -238,5 +250,13 @@ namespace json_reader {
     void JsonReader::JsonRouterSettingsReader(const json::Dict &settings) {
         router_settings_.bus_wait_time_ = settings.at("bus_wait_time").AsInt();
         router_settings_.bus_velocity_ = settings.at("bus_velocity").AsDouble();
+    }
+
+    void JsonReader::JsonSerializationSettingsReader(const json::Dict& settings) {
+        file_path_ = settings.at("file").AsString();
+    }
+
+    const std::string &JsonReader::SerializationSettingsReturn() {
+        return file_path_;
     }
 }//namespace json_reader

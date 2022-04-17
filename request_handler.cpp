@@ -5,7 +5,7 @@
 namespace request_handler {
 using namespace std::string_literals;
     // MapRenderer понадобится в следующей части итогового проекта
-    /*RequestHandler::RequestHandler(const TransportCatalogue &db, const std::vector<std::pair<int, std::string>>& requests)
+    RequestHandler::RequestHandler(const TransportCatalogue &db, const std::vector<std::pair<int, std::string>>& requests)
     : db_(db)
     , requests_(requests){
         for(auto& [id, request] : requests_){
@@ -17,7 +17,7 @@ using namespace std::string_literals;
                 answers_.emplace_back(id, GetBusesByStop(request.substr(space)));
             }
         }
-    }*/
+    }
 
     RequestHandler::RequestHandler(const RequestHandler::TransportCatalogue &db,
                                    const std::vector<std::pair<int, std::string>> &requests,
@@ -42,7 +42,7 @@ using namespace std::string_literals;
                 auto separator = request.find(" -> ", ++space);
                 std::string first_stop = request.substr(space, (separator - space));
                 std::string last_stop = request.substr(separator + 4);
-                answers_.emplace_back(id, router_.GetRoute(first_stop, last_stop));
+                answers_.emplace_back(id, router_.value().GetRoute(first_stop, last_stop));
             }
         }
     }

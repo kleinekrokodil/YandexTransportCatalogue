@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package transport_catalogue_serialize;
+
+message TransportCatalogue {
+    repeated string queries = 1;
+}
