@@ -2,6 +2,9 @@ syntax = "proto3";
 
 package transport_catalogue_serialize;
 
+import "map_renderer.proto";
+
 message TransportCatalogue {
     repeated string queries = 1;
+    RendererSettings render_settings = 2;
 }

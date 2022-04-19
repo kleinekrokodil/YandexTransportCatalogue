@@ -10,6 +10,7 @@ namespace request_handler {
         using TransportCatalogue = transport_catalogue::TransportCatalogue;
 
         RequestHandler(const TransportCatalogue &db, const std::vector<std::pair<int, std::string>>& requests);
+        RequestHandler(const TransportCatalogue &db, const std::vector<std::pair<int, std::string>>& requests, const RendererSettings& renderer_settings);
         RequestHandler(const TransportCatalogue &db, const std::vector<std::pair<int, std::string>>& requests, RendererSettings renderer_settings, const TransportRouter& router);
 
         // Возвращает информацию о маршруте (запрос Bus)

@@ -32,6 +32,24 @@ namespace transport_catalogue {
             }
             return name;
         }
+
+        std::string_view FindName(std::string_view &sv, const std::string& separator) {
+            std::string_view name;
+            std::uint64_t sep_pos = 0;
+            if (sv.find(separator) != std::string_view::npos) { //Ищем признак окончания названия
+                sep_pos = sv.find(separator);
+                name = sv.substr(0, sep_pos);
+            } else {
+                name = sv;
+            }
+            RemoveBeginEndSpaces(name); //Убираем начальные и конечные пробелы
+            if (sep_pos != 0) {
+                sv.remove_prefix(sep_pos + 3);
+            } else {
+                sv.remove_prefix(sv.size());
+            }
+            return name;
+        }
     }//namespace detail
 
     using detail::FindName;
@@ -75,8 +93,28 @@ namespace transport_catalogue {
         while (!stop.next_stops.empty()) {
             std::string_view distance = FindName(stop.next_stops, 'm');
             stop.next_stops.remove_prefix(stop.next_stops.find("to"s));
-            stop.next_stops.remove_prefix(2);
-            std::string_view next_name = FindName(stop.next_stops, ',');
+            stop.next_stops.remove_prefix(stop.next_stops.find(" "s));
+            //std::string_view next_name = FindName(stop.next_stops, ',');
+            std::string_view next_name;
+            auto sep_pos1 =  stop.next_stops.find(',');
+            if(sep_pos1 != std::string_view::npos) {
+                auto sep_pos2 = stop.next_stops.find(' ', sep_pos1 + 2);
+                auto sw = stop.next_stops.substr(sep_pos1,  sep_pos2 - sep_pos1);
+                if (sw.back() != 'm') {
+                    next_name = stop.next_stops.substr(0, sep_pos2);
+                    stop.next_stops.remove_prefix(next_name.size());
+                }
+                else{
+                    next_name = stop.next_stops.substr(0, sep_pos1);
+                    stop.next_stops.remove_prefix(next_name.size() + 2);
+                }
+            }
+            else{
+                next_name = stop.next_stops.substr(0, sep_pos1);
+                stop.next_stops.remove_prefix(next_name.size());
+            }
+            RemoveBeginEndSpaces(next_name);
+
             if (stops_.count(next_name)) {
                 stop.dist_to_next.insert(
                         {stops_.at(next_name).stop_name, std::stod({distance.data(), distance.size()})});
@@ -88,10 +126,10 @@ namespace transport_catalogue {
         Bus bus;
         bus_sv.remove_prefix(3);
         bus.bus_name = FindName(bus_sv, ':');
-        char sep = '-';
-        if (bus_sv.find('>') != std::string_view::npos) {
+        std::string sep = " - ";
+        if (bus_sv.find(" > ") != std::string_view::npos) {
             bus.is_circle = true;
-            sep = '>';
+            sep = " > ";
         }
         while (!bus_sv.empty()) {
             auto stop_name = FindName(bus_sv, sep);

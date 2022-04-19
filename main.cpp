@@ -23,13 +23,13 @@ int main(int argc, char* argv[]) {
 
     if (mode == "make_base"sv) {
         transport_catalogue::TransportCatalogue t(json_input.BaseRequestsReturn());
-        serializer::Path file_path = std::filesystem::path(json_input.SerializationSettingsReturn());
-        serializer::SaveTransportCatalogue(file_path, t);
+        Serializer::Path file_path = std::filesystem::path(json_input.SerializationSettingsReturn());
+        Serializer::SaveTransportCatalogue(file_path, t, json_input.RenderSettingsReturn());
     } else if (mode == "process_requests"sv) {
-        serializer::Path file_path = std::filesystem::path(json_input.SerializationSettingsReturn());
-        transport_catalogue::TransportCatalogue t(serializer::LoadTransportCatalogue(file_path));
-        //TransportRouter tr(t, json_input.RouterSettingsReturn());
-        request_handler::RequestHandler answers(t, json_input.StatRequestsReturn());
+        Serializer::Path file_path = std::filesystem::path(json_input.SerializationSettingsReturn());
+        auto deserializedDb = Serializer::DeserializeDB(file_path);
+        //TransportRouter tr(deserializeDb, json_input.RouterSettingsReturn());
+        request_handler::RequestHandler answers(std::get<0>(deserializedDb), json_input.StatRequestsReturn(), std::get<1>(deserializedDb));
         auto answers_map = json_input.MakeJSON(answers.GetAnswers());
         Print(answers_map, std::cout);
     } else {

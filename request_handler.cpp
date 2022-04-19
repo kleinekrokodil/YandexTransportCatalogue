@@ -21,6 +21,28 @@ using namespace std::string_literals;
 
     RequestHandler::RequestHandler(const RequestHandler::TransportCatalogue &db,
                                    const std::vector<std::pair<int, std::string>> &requests,
+                                   const RendererSettings& renderer_settings)
+    : db_(db)
+    , requests_(requests)
+    , renderer_settings_(std::move(renderer_settings)){
+        for(auto& [id, request] : requests_){
+            auto space = request.find_first_of(' ');
+            if(request.substr(0, space) == "Bus"s){
+                answers_.emplace_back(id, GetBusStat(request.substr(space)));
+            }
+            else if(request.substr(0, space) == "Stop"s){
+                answers_.emplace_back(id, GetBusesByStop(request.substr(space)));
+            }
+            else if(request.substr(0, space) == "Map"s){
+                MapRenderer map_renderer(renderer_settings_, GetActiveBuses());
+                answers_.emplace_back(id, map_renderer.RenderMap());
+            }
+        }
+    }
+
+
+    RequestHandler::RequestHandler(const RequestHandler::TransportCatalogue &db,
+                                   const std::vector<std::pair<int, std::string>> &requests,
                                    RendererSettings renderer_settings, const TransportRouter& router)
     : db_(db)
     , requests_(requests)
@@ -69,6 +91,5 @@ using namespace std::string_literals;
         }
         return active_buses;
     }
-
 
 }//namespace request_handler
