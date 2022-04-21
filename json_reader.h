@@ -6,6 +6,7 @@
 #include "transport_router.h"
 #include <deque>
 #include <unordered_map>
+#include <filesystem>
 
 namespace json_reader {
     class JsonReader {
@@ -18,6 +19,7 @@ namespace json_reader {
 
         const RendererSettings& RenderSettingsReturn();
         const RouterSettings& RouterSettingsReturn();
+        const std::string& SerializationSettingsReturn();
 
         json::Document MakeJSON(const std::vector<std::pair<int, std::variant<BusRoute, StopRoutes, svg::Document, BusTripRoute>>>& answers);
 
@@ -26,11 +28,13 @@ namespace json_reader {
         std::vector<std::pair<int, std::string>> stat_request_;
         RendererSettings render_settings_;
         RouterSettings router_settings_;
+        std::string file_path_;
 
         void JsonBaseReader(const json::Array& base);
         void JsonStatReader(const json::Array& stat);
         void JsonRenderSettingsReader(const json::Dict & settings);
         void JsonRouterSettingsReader(const json::Dict& settings);
+        void JsonSerializationSettingsReader(const json::Dict& settings);
 
         svg::Color ReadColor(const json::Node& node);
 

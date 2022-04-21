@@ -28,6 +28,7 @@ namespace transport_catalogue {
         const std::unordered_map<std::string_view, Bus> & GetBuses() const;
         std::optional<uint32_t> GetDistanceBetweenStops(const Stop& lhs, const Stop& rhs) const;
         const std::unordered_map<std::string_view, Stop>& GetStops() const;
+        const std::deque<std::string>& GetBase() const;
 
     private:
         std::deque<std::string> queries_;
