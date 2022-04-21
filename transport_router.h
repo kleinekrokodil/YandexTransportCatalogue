@@ -26,7 +26,17 @@ struct BusTripRoute{
 class TransportRouter{
 public:
     TransportRouter(const transport_catalogue::TransportCatalogue& tc, RouterSettings router_settings);
+    /*TransportRouter(const transport_catalogue::TransportCatalogue& tc, RouterSettings router_settings,
+                    std::unordered_map<std::string_view, uint32_t> stop_ids,
+                    graph::DirectedWeightedGraph<double> graph,
+                    std::unordered_map<uint32_t, BusTripEdges> edges_ids);*/
     BusTripRoute GetRoute(std::string_view first_stop, std::string_view last_stop);
+
+    RouterSettings GetRouterSettings() const;
+    std::unordered_map<std::string_view, uint32_t> GetStopIds() const;
+    graph::DirectedWeightedGraph<double> GetGraph() const;
+    std::unordered_map<uint32_t, BusTripEdges> GetEdgesIds() const;
+
 
 private:
     const transport_catalogue::TransportCatalogue& tc_;

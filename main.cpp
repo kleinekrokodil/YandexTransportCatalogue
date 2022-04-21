@@ -23,13 +23,16 @@ int main(int argc, char* argv[]) {
 
     if (mode == "make_base"sv) {
         transport_catalogue::TransportCatalogue t(json_input.BaseRequestsReturn());
+        TransportRouter tr(t, json_input.RouterSettingsReturn());
         Serializer::Path file_path = std::filesystem::path(json_input.SerializationSettingsReturn());
-        Serializer::SaveTransportCatalogue(file_path, t, json_input.RenderSettingsReturn());
+        Serializer::SaveTransportCatalogue(file_path, t, json_input.RenderSettingsReturn(), tr);
     } else if (mode == "process_requests"sv) {
         Serializer::Path file_path = std::filesystem::path(json_input.SerializationSettingsReturn());
-        auto deserializedDb = Serializer::DeserializeDB(file_path);
-        //TransportRouter tr(deserializeDb, json_input.RouterSettingsReturn());
-        request_handler::RequestHandler answers(std::get<0>(deserializedDb), json_input.StatRequestsReturn(), std::get<1>(deserializedDb));
+        Deserializer deserialized_db(file_path);
+        transport_catalogue::TransportCatalogue tc(deserialized_db.GetQueries());
+        //TransportRouter tr(tc, deserialized_db.GetRouterSettings(), deserialized_db.GetStopIds(), deserialized_db.GetGraph(), deserialized_db.GetEdgeIds());
+        TransportRouter tr(tc, deserialized_db.GetRouterSettings());
+        request_handler::RequestHandler answers(tc, json_input.StatRequestsReturn(), deserialized_db.GetRendererSettings(), tr);
         auto answers_map = json_input.MakeJSON(answers.GetAnswers());
         Print(answers_map, std::cout);
     } else {

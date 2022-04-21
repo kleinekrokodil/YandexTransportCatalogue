@@ -12,6 +12,15 @@ TransportRouter::TransportRouter(const transport_catalogue::TransportCatalogue &
     route_ = std::make_shared<graph::Router<double>>(graph_);
 }
 
+/*TransportRouter::TransportRouter(const transport_catalogue::TransportCatalogue& tc, RouterSettings router_settings,
+                std::unordered_map<std::string_view, uint32_t> stop_ids,
+                graph::DirectedWeightedGraph<double> graph,
+                std::unordered_map<uint32_t, BusTripEdges> edges_ids)
+        :tc_(tc) , router_settings_(router_settings)
+        ,stop_ids_(std::move(stop_ids)), graph_(std::move(graph)), edges_ids_(std::move(edges_ids)){
+    route_ = std::make_shared<graph::Router<double>>(graph_);
+}*/
+
 void TransportRouter::SetEdges() {
     uint32_t edge_num = 0;
     for(const auto& [name, bus] : tc_.GetBuses()){
@@ -70,6 +79,25 @@ TransportRouter::GetRoute(std::string_view first_stop, std::string_view last_sto
     }
     return route;
 }
+
+RouterSettings TransportRouter::GetRouterSettings() const{
+    return router_settings_;
+}
+
+std::unordered_map<std::string_view, uint32_t> TransportRouter::GetStopIds() const{
+    return stop_ids_;
+}
+
+graph::DirectedWeightedGraph<double> TransportRouter::GetGraph() const {
+    return graph_;
+}
+
+std::unordered_map<uint32_t, BusTripEdges> TransportRouter::GetEdgesIds() const{
+    return edges_ids_;
+}
+
+
+
 
 
 

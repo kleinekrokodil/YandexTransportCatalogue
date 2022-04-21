@@ -4,7 +4,7 @@
 
 namespace request_handler {
 using namespace std::string_literals;
-    // MapRenderer понадобится в следующей части итогового проекта
+   /* // MapRenderer понадобится в следующей части итогового проекта
     RequestHandler::RequestHandler(const TransportCatalogue &db, const std::vector<std::pair<int, std::string>>& requests)
     : db_(db)
     , requests_(requests){
@@ -21,7 +21,7 @@ using namespace std::string_literals;
 
     RequestHandler::RequestHandler(const RequestHandler::TransportCatalogue &db,
                                    const std::vector<std::pair<int, std::string>> &requests,
-                                   const RendererSettings& renderer_settings)
+                                   RendererSettings  renderer_settings)
     : db_(db)
     , requests_(requests)
     , renderer_settings_(std::move(renderer_settings)){
@@ -38,36 +38,36 @@ using namespace std::string_literals;
                 answers_.emplace_back(id, map_renderer.RenderMap());
             }
         }
-    }
+    }*/
 
 
-    RequestHandler::RequestHandler(const RequestHandler::TransportCatalogue &db,
-                                   const std::vector<std::pair<int, std::string>> &requests,
-                                   RendererSettings renderer_settings, const TransportRouter& router)
-    : db_(db)
-    , requests_(requests)
-    , renderer_settings_(std::move(renderer_settings))
-    , router_(router){
-        for(auto& [id, request] : requests_){
-            auto space = request.find_first_of(' ');
-            if(request.substr(0, space) == "Bus"s){
-                answers_.emplace_back(id, GetBusStat(request.substr(space)));
-            }
-            else if(request.substr(0, space) == "Stop"s){
-                answers_.emplace_back(id, GetBusesByStop(request.substr(space)));
-            }
-            else if(request.substr(0, space) == "Map"s){
-                MapRenderer map_renderer(renderer_settings_, GetActiveBuses());
-                answers_.emplace_back(id, map_renderer.RenderMap());
-            }
-            else if(request.substr(0, space) == "Route"s){
-                auto separator = request.find(" -> ", ++space);
-                std::string first_stop = request.substr(space, (separator - space));
-                std::string last_stop = request.substr(separator + 4);
-                answers_.emplace_back(id, router_.value().GetRoute(first_stop, last_stop));
-            }
-        }
-    }
+   RequestHandler::RequestHandler(const RequestHandler::TransportCatalogue &db,
+                                  const std::vector<std::pair<int, std::string>> &requests,
+                                  RendererSettings renderer_settings, const TransportRouter& router)
+           : db_(db)
+           , requests_(requests)
+           , renderer_settings_(std::move(renderer_settings))
+           , router_(router){
+       for(auto& [id, request] : requests_){
+           auto space = request.find_first_of(' ');
+           if(request.substr(0, space) == "Bus"s){
+               answers_.emplace_back(id, GetBusStat(request.substr(space)));
+           }
+           else if(request.substr(0, space) == "Stop"s){
+               answers_.emplace_back(id, GetBusesByStop(request.substr(space)));
+           }
+           else if(request.substr(0, space) == "Map"s){
+               MapRenderer map_renderer(renderer_settings_, GetActiveBuses());
+               answers_.emplace_back(id, map_renderer.RenderMap());
+           }
+           else if(request.substr(0, space) == "Route"s){
+               auto separator = request.find(" -> ", ++space);
+               std::string first_stop = request.substr(space, (separator - space));
+               std::string last_stop = request.substr(separator + 4);
+               answers_.emplace_back(id, router_.GetRoute(first_stop, last_stop));
+           }
+       }
+   }
 
     // Возвращает информацию о маршруте (запрос Bus)
     BusRoute RequestHandler::GetBusStat(const std::string_view &bus_name) const {

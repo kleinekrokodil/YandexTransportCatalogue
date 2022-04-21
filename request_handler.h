@@ -9,8 +9,8 @@ namespace request_handler {
     public:
         using TransportCatalogue = transport_catalogue::TransportCatalogue;
 
-        RequestHandler(const TransportCatalogue &db, const std::vector<std::pair<int, std::string>>& requests);
-        RequestHandler(const TransportCatalogue &db, const std::vector<std::pair<int, std::string>>& requests, const RendererSettings& renderer_settings);
+        /*RequestHandler(const TransportCatalogue &db, const std::vector<std::pair<int, std::string>>& requests);
+        RequestHandler(const TransportCatalogue &db, const std::vector<std::pair<int, std::string>>& requests, RendererSettings  renderer_settings);*/
         RequestHandler(const TransportCatalogue &db, const std::vector<std::pair<int, std::string>>& requests, RendererSettings renderer_settings, const TransportRouter& router);
 
         // Возвращает информацию о маршруте (запрос Bus)
@@ -33,6 +33,6 @@ namespace request_handler {
         const std::vector<std::pair<int, std::string>>& requests_;
         std::vector<std::pair<int, std::variant<BusRoute, StopRoutes, svg::Document, BusTripRoute>>> answers_;
         RendererSettings renderer_settings_;
-        std::optional<TransportRouter> router_;
+        TransportRouter router_;
     };
 }//namespace request_handler

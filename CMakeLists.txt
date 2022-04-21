@@ -11,7 +11,9 @@ find_package(Threads REQUIRED)
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS
         svg.proto
         map_renderer.proto
-        transport_catalogue.proto)
+        transport_catalogue.proto
+        graph.proto
+        transport_router.proto)
 
 add_executable(transport_catalogue ${PROTO_SRCS} ${PROTO_HDRS}
         main.cpp
@@ -24,8 +26,8 @@ add_executable(transport_catalogue ${PROTO_SRCS} ${PROTO_HDRS}
         svg.h svg.cpp
         map_renderer.h map_renderer.cpp
         json_builder.h json_builder.cpp
-        graph.h ranges.h router.h
-        transport_router.h transport_router.cpp
+        graph.h ranges.h router.h graph.proto
+        transport_router.h transport_router.cpp transport_router.proto
         serialization.h serialization.cpp)
 
 target_include_directories(transport_catalogue PUBLIC ${Protobuf_INCLUDE_DIRS})

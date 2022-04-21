@@ -31,10 +31,15 @@ private:
 public:
     DirectedWeightedGraph() = default;
     explicit DirectedWeightedGraph(size_t vertex_count); // конструктор по количеству вершин
+    DirectedWeightedGraph(std::vector<Edge<Weight>> edges, std::vector<IncidenceList> incidence_lists);
     EdgeId AddEdge(const Edge<Weight>& edge); //добавить ребро с параметром веса
 
     size_t GetVertexCount() const;
     size_t GetEdgeCount() const;
+
+    std::vector<Edge<Weight>> GetEdges() const;
+    std::vector<std::vector<EdgeId>> GetIncidenceLists() const;
+
     const Edge<Weight>& GetEdge(EdgeId edge_id) const;
     IncidentEdgesRange GetIncidentEdges(VertexId vertex) const; //Выдать ребра, принадлежащие вершине
 
@@ -47,6 +52,12 @@ template <typename Weight>
 DirectedWeightedGraph<Weight>::DirectedWeightedGraph(size_t vertex_count)
     : incidence_lists_(vertex_count) {
 } //Конструктор создает граф с заданным количеством вершин со значениями по умолчанию
+
+template <typename Weight>
+DirectedWeightedGraph<Weight>::DirectedWeightedGraph(std::vector<Edge<Weight>> edges, std::vector<IncidenceList> incidence_lists)
+:edges_(std::move(edges))
+,incidence_lists_(std::move(incidence_lists)){
+}
 
 template <typename Weight>
 EdgeId DirectedWeightedGraph<Weight>::AddEdge(const Edge<Weight>& edge) {
@@ -76,4 +87,15 @@ typename DirectedWeightedGraph<Weight>::IncidentEdgesRange
 DirectedWeightedGraph<Weight>::GetIncidentEdges(VertexId vertex) const {
     return ranges::AsRange(incidence_lists_.at(vertex));
 }
+
+template<typename Weight>
+std::vector<Edge<Weight>> DirectedWeightedGraph<Weight>::GetEdges() const{
+    return edges_;
+}
+
+template<typename Weight>
+std::vector<std::vector<EdgeId>> DirectedWeightedGraph<Weight>::GetIncidenceLists() const{
+    return incidence_lists_;
+}
+
 }  // namespace graph
